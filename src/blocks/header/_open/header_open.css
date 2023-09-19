@@ -1,9 +1,5 @@
 .header_open {
   padding-top: 171px;
-}
 
-/* @media screen and (max-width: 768px) {
-  .header_open {
-    padding-top: 0px;
-  }
-} */
+  transition: padding-top 0.3s linear;
+}

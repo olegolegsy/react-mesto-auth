@@ -6,25 +6,26 @@ const Login = ({ handleLogin }) => {
     evt.preventDefault();
     handleLogin(value.password, value.email);
   };
+
   return (
     <section className="sign__content">
-      <form className="sign__form" onSubmit={onSubmit}>
+      <form noValidate className="sign__form" onSubmit={onSubmit}>
         <h2 className="sign__header">Вход</h2>
         <input
           placeholder="Email"
           className="sign__input"
           type="email"
           name="email"
+          value={value.email ? value.email : ""}
           onChange={handleChange}
-          value={value.email}
         />
         <input
           placeholder="Пароль"
           className="sign__input"
           type="password"
           name="password"
+          value={value.password ? value.password : ""}
           onChange={handleChange}
-          value={value.password}
         />
         <button className="sign__btn">Войти</button>
       </form>

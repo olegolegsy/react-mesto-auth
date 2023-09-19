@@ -6,7 +6,7 @@
 // 5 - components html return part
 
 import Header from "./Header/Header";
-import Main from "./Main/Main";
+//import Main from "./Main/Main";
 import Footer from "./Footer/Footer";
 import PopupWithForm from "./PopupWithForm/PopupWithForm";
 import ImagePopup from "./ImagePopup/ImagePopup";
@@ -25,6 +25,7 @@ import * as auth from "../utils/auth";
 import { useCallback, useState, useEffect } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute/ProtectedRoute";
+import MainPage from "./MainPage/MainPage";
 
 function App() {
   const navigate = useNavigate();
@@ -62,11 +63,11 @@ function App() {
     setDelCardId(idCard);
   };
 
-  //tooltip
-  const handleTooltipClick = () => {
-    setIsTooltipPopupOpen(true);
-    setEventListeners();
-  };
+  // //tooltip
+  // const handleTooltipClick = () => {
+  //   setIsTooltipPopupOpen(true);
+  //   setEventListeners();
+  // };
 
   // closer
   const setPopupStates = useCallback(() => {
@@ -89,6 +90,22 @@ function App() {
       })
       .catch((err) => console.error(`Ошибка: ${err}`));
   }, []);
+
+  // with dep (чтобы неразлогиниться)
+  useEffect(() => {
+    if (localStorage.jwt) {
+      auth
+        .getUser(localStorage.jwt)
+        .then((res) => {
+          setUserEmail(res.data.email);
+          setIsLoggedIn(true);
+          navigate("/");
+        })
+        .catch((err) => console.error(`Ошибка: ${err}`));
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, [navigate]);
 
   // APIs
   const handleUpdateUser = (userData, handleReset) => {
@@ -140,28 +157,35 @@ function App() {
   };
 
   // auth API
+
   const handleLogin = (password, email) => {
-    auth.auth(password, email).then((res) => {
-      localStorage.setItem("jwt", res.token);
-      setIsLoggedIn(true);
-      navigate("/").catch((err) => {
+    auth
+      .auth(password, email)
+      .then((res) => {
+        localStorage.setItem("jwt", res.token);
+        setIsLoggedIn(true);
+        navigate("/");
+      })
+      .catch((err) => {
         setIsTooltipPopupOpen(true);
         setIsSuccess(false);
         console.error(`Ошибка: ${err}`);
       });
-    });
   };
 
   const handleRegister = (password, email) => {
-    auth.registration(password, email).then((res) => {
-      setIsTooltipPopupOpen(true);
-      setIsSuccess(true);
-      navigate("/sign-in").catch((err) => {
+    auth
+      .registration(password, email)
+      .then(() => {
+        setIsTooltipPopupOpen(true);
+        setIsSuccess(true);
+        navigate("/sign-in");
+      })
+      .catch((err) => {
         setIsTooltipPopupOpen(true);
         setIsSuccess(false);
         console.error(`Ошибка: ${err}`);
       });
-    });
   };
 
   // ================================================================== states ==================================================================
@@ -179,6 +203,7 @@ function App() {
   const [delCardId, setDelCardId] = useState(""); // app data (user's data)
 
   const [currentUser, setCurrentUser] = useState({}); // app data (user's data)
+  const [userEmail, setUserEmail] = useState("oleg@mail.ru"); // app data (user's data)
 
   // routes
   const [isSuccess, setIsSuccess] = useState(false); // app data (user's data)
@@ -210,8 +235,23 @@ function App() {
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <div className="page__content">
-        {/* <Routes>
-          <Route path="/" element={<ProtectedRoute element={<></>} />} />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute
+                element={MainPage}
+                onEditAvatar={handleEditAvatarClick}
+                onAddPlace={handleAddPlaceClick}
+                onEditProfile={handleEditProfileClick}
+                onCardClick={handleCardClick}
+                onConfirm={handleConfirmClick}
+                initialCards={cards}
+                isLoggedIn={isLoggedIn}
+                userEmail={userEmail}
+              />
+            }
+          />
           <Route
             path="/sign-up"
             element={
@@ -232,17 +272,7 @@ function App() {
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes> */}
-
-        <Header page={"main"} />
-        <Main
-          onEditAvatar={handleEditAvatarClick}
-          onAddPlace={handleAddPlaceClick}
-          onEditProfile={handleEditProfileClick}
-          onCardClick={handleCardClick}
-          onConfirm={handleConfirmClick}
-          initialCards={cards}
-        ></Main>
+        </Routes>
 
         <Footer />
         <InfoTooltip

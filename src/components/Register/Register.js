@@ -9,7 +9,7 @@ const Register = ({ handleRegister }) => {
     handleRegister(value.password, value.email);
   };
   return (
-    <section className="sign__content">
+    <section noValidate className="sign__content">
       <form className="sign__form" onSubmit={onSubmit}>
         <h2 className="sign__header">Регистрация</h2>
         <input
@@ -17,7 +17,7 @@ const Register = ({ handleRegister }) => {
           className="sign__input"
           type="email"
           name="email"
-          value={value.email}
+          value={value.email ? value.email : ""}
           onChange={handleChange}
         />
         <input
@@ -25,8 +25,8 @@ const Register = ({ handleRegister }) => {
           className="sign__input"
           type="password"
           name="password"
-          value={value.password}
           onChange={handleChange}
+          value={value.password ? value.password : ""}
         />
         <button className="sign__btn" type="submit">
           Зарегистрироваться
