@@ -6,11 +6,14 @@
 
 /* header */
 @import url(./blocks/header/header.css);
+@import url(./blocks/header/_open/header_open.css);
 @import url(./blocks/header/__logo/header__logo.css);
 @import url(./blocks/header/__email/header__email.css);
 @import url(./blocks/header/__btn/header__btn.css);
 @import url(./blocks/header/__user-info/header__user-info.css);
 @import url(./blocks/header/__burger-btn/header__burger-btn.css);
+@import url(./blocks/header/__mob-menu/header__mob-menu.css);
+@import url(./blocks/header/__mob-menu/_open/header__mob-menu_open.css);
 
 /* content */
 @import url(./blocks/content/content.css);

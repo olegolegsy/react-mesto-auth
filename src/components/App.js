@@ -1,3 +1,10 @@
+// docs of this App component
+// 1 - handle funcs (popup closers)
+// 2 - side effs and API requests
+// 3 - states
+// 4 - listeners (document.addEventListener)
+// 5 - components html return part
+
 import Header from "./Header/Header";
 import Main from "./Main/Main";
 import Footer from "./Footer/Footer";
@@ -5,6 +12,7 @@ import PopupWithForm from "./PopupWithForm/PopupWithForm";
 import ImagePopup from "./ImagePopup/ImagePopup";
 import Login from "./Login/Login";
 import Register from "./Register/Register";
+import InfoTooltip from "./InfoTooltip/InfoTooltip";
 
 import EditProfilePopup from "./EditProfilePopup/EditProfilePopup";
 import EditAvatarPopup from "./EditAvatarPopup/EditAvatarPopup";
@@ -12,11 +20,16 @@ import AddPlacePopup from "./AddPlacePopup/AddPlacePopup";
 
 import CurrentUserContext from "./contexts/CurrentUserContext";
 import api from "../utils/Api";
+import * as auth from "../utils/auth";
 
 import { useCallback, useState, useEffect } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import ProtectedRoute from "./ProtectedRoute/ProtectedRoute";
 
 function App() {
+  const navigate = useNavigate();
   // ================================================================== handle funcs ==================================================================
+  // 1
   //edit avatar
   const handleEditAvatarClick = () => {
     setIsEditAvatarPopupOpen(true);
@@ -49,6 +62,12 @@ function App() {
     setDelCardId(idCard);
   };
 
+  //tooltip
+  const handleTooltipClick = () => {
+    setIsTooltipPopupOpen(true);
+    setEventListeners();
+  };
+
   // closer
   const setPopupStates = useCallback(() => {
     setIsEditAvatarPopupOpen(false);
@@ -56,9 +75,11 @@ function App() {
     setIsAddPlacePopupOpen(false);
     setIsImagePopupOpen(false);
     setIsConfirmPopupOpen(false);
+    setIsTooltipPopupOpen(false);
   }, []);
 
-  // ================================================================== side effs ==================================================================
+  // ================================================================== side effs and APIs ==================================================================
+  // 2
   // on mount only
   useEffect(() => {
     Promise.all([api.getUserInfo(), api.getCards()])
@@ -69,6 +90,7 @@ function App() {
       .catch((err) => console.error(`Ошибка: ${err}`));
   }, []);
 
+  // APIs
   const handleUpdateUser = (userData, handleReset) => {
     api
       .setUserInfo(userData)
@@ -117,12 +139,39 @@ function App() {
       .catch((err) => console.error(`Ошибка: ${err}`));
   };
 
+  // auth API
+  const handleLogin = (password, email) => {
+    auth.auth(password, email).then((res) => {
+      localStorage.setItem("jwt", res.token);
+      setIsLoggedIn(true);
+      navigate("/").catch((err) => {
+        setIsTooltipPopupOpen(true);
+        setIsSuccess(false);
+        console.error(`Ошибка: ${err}`);
+      });
+    });
+  };
+
+  const handleRegister = (password, email) => {
+    auth.registration(password, email).then((res) => {
+      setIsTooltipPopupOpen(true);
+      setIsSuccess(true);
+      navigate("/sign-in").catch((err) => {
+        setIsTooltipPopupOpen(true);
+        setIsSuccess(false);
+        console.error(`Ошибка: ${err}`);
+      });
+    });
+  };
+
   // ================================================================== states ==================================================================
+  // 3
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false); // ui state
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false); // ui state
   const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = useState(false); // ui state
   const [isImagePopupOpen, setIsImagePopupOpen] = useState(false); // ui state
   const [isConfirmPopupOpen, setIsConfirmPopupOpen] = useState(false); // ui state
+  const [isTooltipPopupOpen, setIsTooltipPopupOpen] = useState(false);
 
   // card
   const [cards, setCards] = useState([]); // app data (user's data)
@@ -131,7 +180,12 @@ function App() {
 
   const [currentUser, setCurrentUser] = useState({}); // app data (user's data)
 
+  // routes
+  const [isSuccess, setIsSuccess] = useState(false); // app data (user's data)
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   // ================================================================== listeners ==================================================================
+  // 4
   const handleKeydownEsc = useCallback(
     (evt) => {
       if (evt.key === "Escape") {
@@ -152,11 +206,35 @@ function App() {
   }, [setPopupStates, handleKeydownEsc]);
 
   // ================================================================================ component ================================================================================
+  // 5
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <div className="page__content">
-        <Header />
+        {/* <Routes>
+          <Route path="/" element={<ProtectedRoute element={<></>} />} />
+          <Route
+            path="/sign-up"
+            element={
+              <>
+                <Header page="signup" />
+                <Register handleRegister={handleRegister} />
+              </>
+            }
+          />
 
+          <Route
+            path="/sign-in"
+            element={
+              <>
+                <Header page="signin" />
+                <Login handleLogin={handleLogin} />
+              </>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes> */}
+
+        <Header page={"main"} />
         <Main
           onEditAvatar={handleEditAvatarClick}
           onAddPlace={handleAddPlaceClick}
@@ -166,11 +244,12 @@ function App() {
           initialCards={cards}
         ></Main>
 
-        {/* <Login /> */}
-        {/* <Register /> */}
-
         <Footer />
-
+        <InfoTooltip
+          isOpen={isTooltipPopupOpen}
+          onClose={closeAllPopups}
+          isSuccess={isSuccess}
+        />
         {/* ================================== profile ================================== */}
         <EditProfilePopup
           isOpen={isEditProfilePopupOpen}

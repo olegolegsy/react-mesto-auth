@@ -1,4 +1,6 @@
 .header {
+  position: relative;
+
   display: flex;
   align-items: start;
   justify-content: space-between;
